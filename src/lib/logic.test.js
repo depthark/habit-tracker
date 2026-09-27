@@ -1,15 +1,18 @@
 /**
- * Tests for logic.js, run with the built-in Node test runner:
+ * Tests for logic.js, run with whichever built-in test runner you prefer:
  *
- *   node --test
+ *   bun test        # Bun's runner
+ *   node --test     # Node's built-in runner
  *
- * No npm packages involved — `node:test` and `node:assert` ship with Node.
+ * No npm packages involved — just `node:assert` and whichever `test` the
+ * harness picks. See test-harness.js.
  */
 
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+
+import { test } from './testkit.js';
 
 import {
   GRID_DAYS,
