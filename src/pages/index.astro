@@ -1,0 +1,116 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base
+  title="Habit Tracker"
+  description="A small, private habit tracker. Your data never leaves your browser."
+>
+  <div class="mx-auto flex w-full max-w-2xl flex-col gap-4 px-3 pt-6 pb-10 sm:gap-[18px] sm:px-6 sm:pt-10 sm:pb-12">
+    <header class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight sm:text-[1.9rem]">Habit Tracker</h1>
+        <p class="mt-1 text-sm text-ink-soft">Seven days at a time. Everything stays in this browser.</p>
+      </div>
+
+      <div class="flex gap-0.5 rounded-full border border-line bg-surface p-[3px] shadow-card" role="group" aria-label="Colour theme">
+        <button type="button" class="theme-chip" data-theme-choice="light" title="Light" aria-label="Light theme" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" /><path d="M12 1.5v3.2M12 19.3v3.2M1.5 12h3.2M19.3 12h3.2M4.6 4.6l2.3 2.3M17.1 17.1l2.3 2.3M19.4 4.6l-2.3 2.3M6.9 17.1l-2.3 2.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        </button>
+        <button type="button" class="theme-chip" data-theme-choice="auto" title="Match system" aria-label="Match system theme" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" /><path d="M12 3a9 9 0 0 0 0 18z" /></svg>
+        </button>
+        <button type="button" class="theme-chip" data-theme-choice="dark" title="Dark" aria-label="Dark theme" aria-pressed="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7z" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="flex flex-col gap-3">
+      <form id="add-habit-form" class="card flex flex-wrap items-center gap-2 p-2.5" autocomplete="off">
+        <span class="hidden text-xl sm:inline" aria-hidden="true">🙂</span>
+        <label class="sr-only" for="habit-name">Habit name</label>
+        <input
+          id="habit-name"
+          name="name"
+          type="text"
+          class="min-w-0 flex-1 rounded-tile border border-transparent bg-surface-2 px-3 py-2.5 text-base text-ink"
+          placeholder="Drink water"
+          maxlength="60"
+          required
+        />
+        <label class="sr-only" for="habit-emoji">Emoji</label>
+        <input
+          id="habit-emoji"
+          name="emoji"
+          type="text"
+          class="w-12 shrink-0 rounded-tile border border-transparent bg-surface-2 px-3 py-2.5 text-center text-base sm:w-[58px]"
+          placeholder="💧"
+          maxlength="4"
+          size="2"
+        />
+        <button type="submit" class="btn btn-primary max-sm:flex-1 max-sm:w-full max-sm:basis-full">Add habit</button>
+      </form>
+
+      <p id="form-error" class="-mt-2 text-sm text-danger" role="alert" hidden></p>
+      <p id="storage-warning" class="-mt-2 text-sm text-danger" role="alert" hidden>
+        Your browser is blocking storage, so these habits will not survive a reload.
+      </p>
+
+      <ul id="habits" class="flex flex-col gap-3 p-0" aria-live="polite"></ul>
+
+      <p id="empty-state" class="m-0 rounded-card border border-dashed border-line px-4 py-9 text-center text-ink-soft" hidden>
+        <span class="mb-2 block text-3xl" aria-hidden="true">🌱</span>
+        No habits yet. Add your first one above.
+      </p>
+    </main>
+
+    <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3 text-sm text-ink-soft">
+      <span id="summary">—</span>
+      <button type="button" class="btn btn-ghost" id="clear-all">Delete all data</button>
+    </footer>
+  </div>
+
+  <dialog id="confirm-dialog" class="m-auto w-[min(340px,92vw)] rounded-card border border-line bg-surface p-5 text-ink shadow-card backdrop:bg-slate-950/55">
+    <h2 id="confirm-title" class="mb-1.5 text-lg font-semibold">Delete this habit?</h2>
+    <p id="confirm-body" class="mb-4.5 text-sm text-ink-soft">This cannot be undone.</p>
+    <div class="flex justify-end gap-2">
+      <button type="button" class="btn" id="confirm-cancel" value="cancel">Keep it</button>
+      <button type="button" class="btn btn-danger" id="confirm-accept" value="confirm">Delete</button>
+    </div>
+  </dialog>
+
+  <template id="habit-template">
+    <li class="habit card p-3 sm:p-3.5">
+      <div class="mb-3 flex items-center gap-2.5 sm:mb-3">
+        <span class="text-[1.2rem] sm:text-[1.4rem]" data-role="emoji" aria-hidden="true"></span>
+        <h2 class="min-w-0 flex-1 text-base font-semibold break-words sm:text-[1.05rem]" data-role="name"></h2>
+        <span
+          class="streak-badge"
+          data-role="streak"
+          data-hot="false"
+          title="Consecutive days, counting back from today"
+        >
+          <strong class="text-[0.88rem] tabular-nums text-ink sm:text-[0.95rem]" data-role="streak-count">0</strong>
+          <span>day streak</span>
+        </span>
+        <button type="button" class="btn btn-icon" data-role="delete" aria-label="Delete habit" title="Delete habit">✕</button>
+      </div>
+      <ol class="week"></ol>
+    </li>
+  </template>
+
+  <template id="day-template">
+    <li>
+      <button type="button" class="day-toggle">
+        <span class="day-weekday"></span>
+        <span class="day-box" aria-hidden="true"></span>
+        <span class="day-number"></span>
+      </button>
+    </li>
+  </template>
+
+  <script>
+    import '../scripts/app.js';
+  </script>
+</Base>

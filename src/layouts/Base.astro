@@ -1,0 +1,42 @@
+---
+/**
+ * Base.astro — the document shell.
+ *
+ * `data-theme` is set before first paint by the inline script below, so a
+ * dark-mode user never sees a white flash on reload.
+ */
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+// Astro gives BASE_URL without a trailing slash; every asset path needs one.
+const base = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL
+  : `${import.meta.env.BASE_URL}/`;
+const themeInit = `(function(){try{var t=localStorage.getItem('habit-tracker:theme');document.documentElement.dataset.theme=(t==='light'||t==='dark')?t:'auto'}catch(e){document.documentElement.dataset.theme='auto'}})();`;
+---
+
+<!doctype html>
+<html lang="en" data-theme="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={`${base}icon-192.png`} />
+    <link rel="manifest" href={`${base}manifest.webmanifest`} />
+    <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1015" media="(prefers-color-scheme: dark)" />
+
+    <script is:inline set:html={themeInit} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
