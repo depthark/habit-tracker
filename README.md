@@ -32,12 +32,44 @@ Other commands:
 ```bash
 bun run build      # static output into dist/
 bun run preview    # serve the built output
-bun run check      # astro check — types and template diagnostics
+bun run check      # type-check, including .astro templates
 bun test           # the test suite
 ```
 
 Requires [Bun](https://bun.sh) 1.2+. Node 18+ also works for `build`, `preview`
 and `node --test`.
+
+## TypeScript 7
+
+The project type-checks with **TypeScript 7.1** via the
+[`@astrojs/ts-content-mapper`](https://github.com/withastro/astro/tree/main/packages/language-tools/ts-content-mapper),
+which lets `tsc` parse `.astro` files directly:
+
+```bash
+bun run check      # tsc --noEmit --runExternalCode
+```
+
+Two things are worth knowing if you touch this:
+
+- **`astro check` is gone.** It rejects TypeScript 7 outright — the CLI is built
+  on the TypeScript language service, which the 7.x compiler does not provide.
+  `tsc` plus the content mapper replaces it, and covers the same ground.
+- **The version is a pinned nightly.** `astro check` needs 7.1+, and 7.1 exists
+  only as `7.1.0-dev.*` builds; stable 7.0.2 does not have the content-mapper
+  hooks. The platform binaries are `optionalDependencies`, so only the one
+  matching your machine is installed. If you would rather not track a nightly,
+  `typescript@7.0.2` plus dropping the mapper is the stable-only fallback — the
+  cost is that `.astro` templates go unchecked.
+
+`--runExternalCode` is not optional: content mappers execute code from
+`node_modules` during compilation, and TypeScript requires an explicit opt-in.
+
+One more quirk: `tsconfig.json` deliberately does **not** include
+`.astro/types.d.ts`. That file references `astro/client`, which pulls Astro's
+own shipped `<Font>` and `<Picture>` components into the program; they reference
+a virtual module that only exists inside the Astro build, so a standalone `tsc`
+can never resolve it and reports errors in code that is not ours. The ambient
+types we actually use are declared in `src/env.d.ts` instead.
 
 ## Running the tests
 
@@ -68,6 +100,7 @@ data. There is also a test asserting `logic.js` contains no DOM references.
 
 ```
 src/
+  env.d.ts          ambient types: import.meta.env, *.css
   lib/logic.js       pure functions: streaks, toggling, dates, serialising
   lib/logic.test.js  the test suite
   lib/testkit.js     picks bun:test or node:test
