@@ -1,8 +1,8 @@
 # Habit Tracker
 
-A small habit tracker in plain HTML, CSS and JavaScript. No framework, no build
-step, no dependencies, no server. Your habits live in your browser's
-`localStorage` and nowhere else.
+A small habit tracker built with **Astro**, **Tailwind CSS** and **Bun**. No UI
+framework, no backend, no database. Your habits live in your browser's
+`localStorage` and nowhere else. It installs as a PWA and works offline.
 
 ![The app in light mode, desktop](docs/desktop-light.png)
 
@@ -14,74 +14,90 @@ step, no dependencies, no server. Your habits live in your browser's
 - **Delete** anything, behind a confirmation you have to actually click.
 - **Persists** across reloads, tab closes and browser restarts.
 - **Light and dark**, following your system setting by default.
+- **Installable** — add it to your home screen and it runs offline.
 - **Works on a phone** — the layout is fine down to 375 px.
 
 ## Running it
 
-The page is static, but it uses ES modules, which browsers refuse to load over
-`file://`. So serve the folder over HTTP, any way you like:
-
 ```bash
-# Python
-python -m http.server 8000
-
-# or Node, no packages required
-npx --yes serve .
+bun install
+bun run dev        # http://localhost:4321/habit-tracker
 ```
 
-Then open <http://localhost:8000>.
+Note the `/habit-tracker` path: the site is configured for a sub-path on GitHub
+Pages, so it is served under that prefix locally too.
 
-The live version is deployed to GitHub Pages from `main`:
-**<https://depthark.github.io/habit-tracker/>**
+Other commands:
+
+```bash
+bun run build      # static output into dist/
+bun run preview    # serve the built output
+bun run check      # astro check — types and template diagnostics
+bun test           # the test suite
+```
+
+Requires [Bun](https://bun.sh) 1.2+. Node 18+ also works for `build`, `preview`
+and `node --test`.
 
 ## Running the tests
 
-The tests use Node's built-in test runner. There is nothing to install — no
-`npm install`, no dev dependencies.
+No test framework is installed — the suite runs on the built-in runner, under
+either Bun or Node:
 
 ```bash
-node --test
+bun test           # Bun's runner
+node --test        # Node's built-in runner
 ```
 
-Or, if you prefer the npm script:
+`src/lib/testkit.js` picks the right `test` import for whichever runtime is
+running, so one test file serves both. The assertions are plain
+`node:assert`, which both runtimes implement.
 
-```bash
-npm test
-```
-
-To watch a single test file:
-
-```bash
-node --test logic.test.js
-```
-
-Requirements: Node 18 or newer. Expected result:
+Expected result:
 
 ```
-# tests 26
-# pass 26
-# fail 0
+ 26 pass
+ 0 fail
 ```
+
+Coverage includes the awkward cases: an empty habit, a streak spanning a month
+*and* a year boundary, today not yet ticked, future dates, and corrupt saved
+data. There is also a test asserting `logic.js` contains no DOM references.
 
 ## How it is put together
 
-| File | Job |
-| --- | --- |
-| `logic.js` | All the thinking: streaks, toggling, local-date handling, serialising. **No DOM access at all.** |
-| `logic.test.js` | The test suite for the above. |
-| `app.js` | Wiring only: reads the DOM, asks `logic.js` what to show, paints it. |
-| `index.html` | Markup and the two `<template>`s the renderer clones. |
-| `styles.css` | Everything visual, including both colour themes. |
+```
+src/
+  lib/logic.js       pure functions: streaks, toggling, dates, serialising
+  lib/logic.test.js  the test suite
+  lib/testkit.js     picks bun:test or node:test
+  lib/storage.js     the only module that touches localStorage
+  pages/index.astro  the page: markup plus the two <template>s
+  layouts/Base.astro document shell, theme bootstrap, PWA head tags
+  scripts/app.js     client wiring: DOM in, logic.js out
+  styles/global.css  design tokens and the handful of component classes
+public/
+  manifest.webmanifest, sw.js, icons
+scripts/
+  generate-icons.mjs draws the PNG icons with no image library
+```
 
-The split is the point. Because `logic.js` never touches the DOM, the awkward
-parts — what counts as a streak, what happens at midnight, what to do with
-corrupt saved data — are all reachable from a plain unit test.
+Three boundaries worth respecting:
+
+1. **`logic.js` never touches the DOM.** No `document`, no `window`, no
+   `localStorage` — a test enforces this. Every awkward decision (what counts as
+   a streak, what happens at midnight, what to do with corrupt data) is
+   therefore reachable from a plain unit test.
+2. **`storage.js` is the only module that touches `localStorage`.** It probes
+   whether storage works at all and falls back to an in-memory store, so
+   private browsing degrades instead of breaking.
+3. **`app.js` does no arithmetic.** It renders what `logic.js` decides.
 
 ### The one deliberate decision worth knowing about
 
 **Today not being ticked does not break your streak.** If you did Monday to
 Friday and it is Friday evening, you still have a 5-day streak; the chain only
-breaks at midnight. This is what `currentStreak(habit, today)` does by default.
+breaks at midnight. That is what `currentStreak(habit, today)` does by default.
 
 If you would rather have the strict version, it is one argument away:
 
@@ -91,20 +107,44 @@ currentStreak(habit, today, { todayPending: false }); // 0 if today is unticked
 
 Both behaviours are covered by tests.
 
-### Dates
+### Theming
 
-Days are stored as `'YYYY-MM-DD'` strings built from **local** date parts. The
-usual shortcut, `toISOString().slice(0, 10)`, converts to UTC first and will
-quietly log your tick on the wrong day for anyone not on UTC. `parseKey` also
-rejects impossible dates like `2026-02-30`, which `Date` would otherwise roll
-over into March.
+The palette is defined once as CSS custom properties in `@theme`. No component
+carries a `dark:` variant — they ask for `bg-surface` or `text-ink-soft` and the
+token underneath changes. That is why both themes live in one block, and why
+adding the manual override cost three lines instead of thirty.
+
+Every foreground/background pairing was checked against WCAG contrast ratios;
+`axe` reports 0 violations in both themes.
+
+### The service worker
+
+`public/sw.js` is hand-written rather than generated. `@vite-pwa/astro` only
+declares peer support up to Astro 5, and the app is on Astro 7, so rather than
+pin the project to an older major for one plugin, the worker is 90 readable
+lines with three strategies: network-first for navigations, cache-first for
+everything else, and a precached shell.
+
+Two details that are easy to get wrong and were caught by testing offline:
+
+- `cache.match` must pass `{ ignoreVary: true }`. Without it the server's
+  `Vary: Accept-Encoding` makes cached copies invisible and offline loads 504.
+- On a first visit the CSS and JS are fetched *before* the worker exists, so
+  `warmCache()` in `app.js` re-adds them. The browser answers from its own HTTP
+  cache, so it is nearly free, and it avoids a `controllerchange` page reload.
+
+To ship a change to the worker, bump `CACHE_VERSION` in `public/sw.js`; the old
+cache is dropped on activation.
+
+![Serving the app with the server stopped](docs/offline-pwa.png)
 
 ## Privacy
 
-There is no analytics, no account, no network call. The only thing written
-anywhere is the `habit-tracker:v1` key in your own `localStorage`. Clearing
-site data erases it permanently, so there is no cloud copy — which is the point,
-but also the trade-off.
+There is no analytics, no account and no network call. The only things written
+anywhere are the `habit-tracker:v1` and `habit-tracker:theme` keys in your own
+`localStorage`, plus the Cache Storage entries the service worker manages.
+Clearing site data erases everything permanently — there is no cloud copy, which
+is the point, but also the trade-off.
 
 ## Licence
 
