@@ -30,7 +30,6 @@ import {
   removeHabit,
   serialize,
   setDay,
-  sortHabits,
   startOfDay,
   toKey,
   toggleDay,
@@ -237,13 +236,14 @@ test('longestStreak finds the best run anywhere in the record', () => {
   assert.equal(longestStreak(createHabit('none')), 0);
 });
 
-test('sortHabits puts the strongest streaks first', () => {
-  const weak = createHabit('Weak', '🐣', { id: 'w', days: ['2026-09-27'] });
-  const strong = createHabit('Strong', '🦁', { id: 's', days: ['2026-09-25', '2026-09-26', '2026-09-27'] });
-  const sorted = sortHabits({ habits: [weak, strong] }, '2026-09-27');
-  assert.deepEqual(sorted.map((h) => h.id), ['s', 'w']);
+test('habits keep the order they were added in', () => {
+  let state = emptyState();
+  for (const name of ['Walk', 'Read', 'Run']) {
+    state = addHabit(state, createHabit(name, '✅', { id: name }));
+  }
+  // No hidden re-sorting: ticking a day must never move somebody's card.
+  assert.deepEqual(state.habits.map((h) => h.name), ['Walk', 'Read', 'Run']);
 });
-
 // --- persistence -----------------------------------------------------------
 
 test('state survives a serialise / deserialise round trip', () => {

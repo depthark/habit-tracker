@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="A small, private habit tracker. Your data never leaves your browser." />
+    <meta name="color-scheme" content="light dark" />
+    <title>Habit Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="masthead">
+        <div class="masthead__text">
+          <h1>Habit Tracker</h1>
+          <p class="tagline">Seven days at a time. Everything stays in this browser.</p>
+        </div>
+        <div class="theme-switch" role="group" aria-label="Colour theme">
+          <button type="button" data-theme-choice="light" title="Light" aria-label="Light theme">☀</button>
+          <button type="button" data-theme-choice="auto" title="Match system" aria-label="Match system theme">◐</button>
+          <button type="button" data-theme-choice="dark" title="Dark" aria-label="Dark theme">☾</button>
+        </div>
+      </header>
+
+      <main>
+        <form class="add-habit" id="add-habit-form" autocomplete="off">
+          <span class="add-habit__emoji" aria-hidden="true">🙂</span>
+          <label class="visually-hidden" for="habit-name">Habit name</label>
+          <input
+            id="habit-name"
+            name="name"
+            type="text"
+            placeholder="Drink water"
+            maxlength="60"
+            required
+          />
+          <label class="visually-hidden" for="habit-emoji">Emoji</label>
+          <input
+            id="habit-emoji"
+            name="emoji"
+            type="text"
+            class="add-habit__emoji-input"
+            placeholder="💧"
+            maxlength="4"
+            size="2"
+          />
+          <button type="submit" class="btn btn--primary">Add habit</button>
+        </form>
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+
+        <ul class="habits" id="habits" aria-live="polite"></ul>
+
+        <p class="empty" id="empty-state" hidden>
+          <span class="empty__mark" aria-hidden="true">🌱</span>
+          No habits yet. Add your first one above.
+        </p>
+      </main>
+      <footer class="colophon">
+        <span id="summary">—</span>
+        <button type="button" class="btn btn--ghost" id="clear-all">Delete all data</button>
+      </footer>
+    </div>
+
+    <dialog class="confirm" id="confirm-dialog">
+      <h2 id="confirm-title">Delete this habit?</h2>
+      <p id="confirm-body">This cannot be undone.</p>
+      <div class="confirm__actions">
+        <button type="button" class="btn" id="confirm-cancel" value="cancel">Keep it</button>
+        <button type="button" class="btn btn--danger" id="confirm-accept" value="confirm">Delete</button>
+      </div>
+    </dialog>
+
+    <template id="habit-template">
+      <li class="habit">
+        <div class="habit__head">
+          <span class="habit__emoji" aria-hidden="true"></span>
+          <h2 class="habit__name"></h2>
+          <span class="streak" title="Consecutive days, counting back from today">
+            <strong class="streak__count">0</strong>
+            <span class="streak__label">day streak</span>
+          </span>
+          <button type="button" class="btn btn--danger-icon habit__delete" aria-label="Delete habit" title="Delete habit">✕</button>
+        </div>
+        <ol class="week"></ol>
+      </li>
+    </template>
+
+    <template id="day-template">
+      <li class="day">
+        <button type="button" class="day__toggle">
+          <span class="day__weekday"></span>
+          <span class="day__box" aria-hidden="true"></span>
+          <span class="day__number"></span>
+        </button>
+      </li>
+    </template>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

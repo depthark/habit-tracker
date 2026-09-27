@@ -263,18 +263,6 @@ export function findHabit(state, id) {
   return habits.find((habit) => habit.id === id) ?? null;
 }
 
-/** Sort habits: current streak descending, then longest streak, then name. */
-export function sortHabits(state, today = new Date()) {
-  const habits = Array.isArray(state?.habits) ? [...state.habits] : [];
-  return habits.sort((a, b) => {
-    const byStreak = currentStreak(b, today) - currentStreak(a, today);
-    if (byStreak !== 0) return byStreak;
-    const byBest = longestStreak(b) - longestStreak(a);
-    if (byBest !== 0) return byBest;
-    return a.name.localeCompare(b.name);
-  });
-}
-
 // ---------------------------------------------------------------------------
 // Serialisation
 // ---------------------------------------------------------------------------

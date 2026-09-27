@@ -1,0 +1,443 @@
+/* ==========================================================================
+   Habit Tracker — plain CSS, no framework.
+   Theming: `data-theme` on <html> is "auto" (follow the OS), "light" or "dark".
+   "auto" is the default and simply leaves the media queries in charge.
+   ========================================================================== */
+
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eef0f4;
+  --ink: #16181d;
+  --ink-soft: #5b6270;
+  --line: #dfe2e9;
+  --accent: #2f5cf0;
+  --accent-ink: #ffffff;
+  --done: #1f8f5c;
+  --done-ink: #17693f;
+  --done-soft: #d8f0e2;
+  --box-line: #949aa4;
+  --danger: #d0342c;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 2px rgb(16 20 30 / 6%), 0 6px 18px rgb(16 20 30 / 5%);
+  --focus: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1015;
+    --surface: #171a21;
+    --surface-2: #1e222b;
+    --ink: #e8eaf0;
+    --ink-soft: #9aa3b4;
+    --line: #2a2f3a;
+    --accent: #6f8dff;
+    --accent-ink: #0e1015;
+    --done: #4cc38a;
+    --done-ink: #4cc38a;
+    --done-soft: #1d3a2d;
+    --box-line: #6b7280;
+    --danger: #f2685e;
+    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 18px rgb(0 0 0 / 30%);
+  }
+}
+
+/* Explicit dark, whether or not the OS asked for it. */
+:root[data-theme="dark"] {
+  --bg: #0e1015;
+  --surface: #171a21;
+  --surface-2: #1e222b;
+  --ink: #e8eaf0;
+  --ink-soft: #9aa3b4;
+  --line: #2a2f3a;
+  --accent: #6f8dff;
+  --accent-ink: #0e1015;
+  --done: #4cc38a;
+  --done-ink: #4cc38a;
+  --done-soft: #1d3a2d;
+  --box-line: #6b7280;
+  --danger: #f2685e;
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 18px rgb(0 0 0 / 30%);
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 40px) clamp(12px, 4vw, 24px) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* --- masthead ------------------------------------------------------------ */
+
+.masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 1.9rem);
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  margin: 4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.theme-switch {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 3px;
+  gap: 2px;
+  box-shadow: var(--shadow);
+}
+
+.theme-switch button {
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+  line-height: 1;
+  width: 34px;
+  height: 30px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.theme-switch button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* --- add form ------------------------------------------------------------ */
+
+.add-habit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px;
+  box-shadow: var(--shadow);
+}
+
+.add-habit__emoji { font-size: 1.25rem; }
+
+.add-habit input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid transparent;
+  background: var(--surface-2);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.add-habit__emoji-input {
+  flex: 0 0 auto;
+  width: 58px;
+  text-align: center;
+}
+
+input:focus-visible,
+button:focus-visible,
+.day__toggle:focus-visible {
+  outline: 2px solid transparent; /* keep the ring, drop the double border */
+  box-shadow: var(--focus);
+}
+
+.form-error {
+  margin: -8px 0 0;
+  color: var(--danger);
+  font-size: 0.88rem;
+}
+
+/* --- buttons ------------------------------------------------------------- */
+
+.btn {
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn:hover { border-color: var(--ink-soft); }
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  flex: 0 0 auto;
+}
+
+.btn--danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.btn--ghost {
+  background: none;
+  border-color: transparent;
+  color: var(--ink-soft);
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.btn--danger-icon {
+  flex: 0 0 auto;
+  border-color: transparent;
+  background: none;
+  color: var(--ink-soft);
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  line-height: 1;
+  font-size: 0.95rem;
+}
+
+.btn--danger-icon:hover {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border-color: transparent;
+  color: var(--danger);
+}
+
+/* --- habit list ---------------------------------------------------------- */
+
+.habits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.habit {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.habit__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.habit__emoji { font-size: 1.4rem; }
+
+.habit__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.streak {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.streak__count {
+  font-size: 0.95rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.habit[data-streak="hot"] .streak {
+  background: var(--done-soft);
+  color: var(--done-ink);
+}
+
+.habit[data-streak="hot"] .streak__count { color: var(--done-ink); }
+
+/* --- the seven-day grid -------------------------------------------------- */
+
+.week {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.day__toggle {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 2px 6px;
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.day__toggle:hover { border-color: var(--accent); }
+
+.day__weekday {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.day__box {
+  width: 100%;
+  max-width: 34px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  /* 3:1 against the cell, so an empty box is never a guess. */
+  border: 2px solid var(--box-line);
+  background: var(--surface);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.day__number {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.day.is-done .day__box {
+  background: var(--done);
+  border-color: var(--done);
+}
+
+.day.is-done .day__toggle { color: var(--done-ink); }
+.day.is-today .day__toggle { border-color: var(--accent); }
+.day.is-today .day__weekday { color: var(--accent); font-weight: 700; }
+
+/* --- empty state & footer ------------------------------------------------ */
+
+.empty {
+  text-align: center;
+  color: var(--ink-soft);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 36px 16px;
+  margin: 0;
+}
+
+.empty__mark { display: block; font-size: 2rem; margin-bottom: 8px; }
+
+.colophon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* --- confirmation dialog ------------------------------------------------- */
+
+.confirm {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 20px;
+  max-width: 340px;
+  box-shadow: var(--shadow);
+}
+
+.confirm::backdrop { background: rgb(8 10 14 / 55%); }
+.confirm h2 { margin: 0 0 6px; font-size: 1.1rem; }
+.confirm p { margin: 0 0 18px; color: var(--ink-soft); }
+
+.confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- narrow screens (iPhone SE and friends: 375 px) ----------------------- */
+
+@media (max-width: 480px) {
+  .page { gap: 14px; }
+
+  .habit { padding: 12px 10px; }
+  .habit__head { gap: 8px; margin-bottom: 10px; }
+  .habit__emoji { font-size: 1.2rem; }
+  .habit__name { font-size: 0.98rem; }
+
+  .streak { padding: 3px 8px; font-size: 0.72rem; }
+  .streak__count { font-size: 0.88rem; }
+
+  .week { gap: 4px; }
+  .day__toggle { padding: 6px 1px 5px; border-radius: 7px; gap: 4px; }
+  .day__weekday { font-size: 0.6rem; letter-spacing: 0.02em; }
+  .day__box { border-radius: 6px; }
+  .day__number { font-size: 0.66rem; }
+
+  /* The emoji field is a nicety; the name is what matters. */
+  .add-habit { flex-wrap: wrap; }
+  .add-habit__emoji { display: none; }
+  .add-habit__emoji-input { width: 48px; }
+  .btn--primary { flex: 1 1 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
