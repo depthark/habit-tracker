@@ -1,11 +1,25 @@
 {
   "name": "habit-tracker",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
-  "description": "A tiny habit tracker in plain HTML, CSS and JS. No framework, no build step, no dependencies.",
+  "description": "A small habit tracker built with Astro, Tailwind and Bun. No UI framework, no backend.",
   "scripts": {
-    "test": "node --test"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "bun test",
+    "test:node": "node --test",
+    "icons": "node scripts/generate-icons.mjs"
   },
-  "license": "MIT"
+  "dependencies": {
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6"
+  }
 }
