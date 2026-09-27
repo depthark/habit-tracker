@@ -31,7 +31,7 @@ npx --yes serve .
 
 Then open <http://localhost:8000>.
 
-The live version is on GitHub Pages:
+The live version is deployed to GitHub Pages from `main`:
 **<https://depthark.github.io/habit-tracker/>**
 
 ## Running the tests
