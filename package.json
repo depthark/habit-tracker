@@ -1,0 +1,11 @@
+{
+  "name": "habit-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A tiny habit tracker in plain HTML, CSS and JS. No framework, no build step, no dependencies.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
